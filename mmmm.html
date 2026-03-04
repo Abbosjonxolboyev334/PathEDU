@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PathEDU - Xalqaro Ta'lim Platformasi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --secondary: #8b5cf6;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --dark: #0f172a;
+            --darker: #020617;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --glass: rgba(255, 255, 255, 0.05);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 50%, #1e1b4b 100%);
+            color: var(--text);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .presentation {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px;
+            opacity: 0;
+            transform: translateX(100px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: all;
+        }
+
+        .slide.prev {
+            transform: translateX(-100px);
+            opacity: 0;
+        }
+
+        /* Background Effects */
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .bg-glow {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.3;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .glow-1 {
+            background: var(--primary);
+            top: -200px;
+            right: -200px;
+            animation: float 10s ease-in-out infinite;
+        }
+
+        .glow-2 {
+            background: var(--accent);
+            bottom: -200px;
+            left: -200px;
+            animation: float 12s ease-in-out infinite reverse;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(50px, 50px); }
+        }
+
+        /* Typography */
+        h1 {
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--text) 0%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .subtitle {
+            font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+            color: var(--text-muted);
+            font-weight: 400;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .tagline {
+            font-size: 1.3rem;
+            color: var(--accent);
+            font-weight: 500;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        /* Cards */
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            width: 100%;
+            max-width: 1200px;
+            margin-top: 40px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .card-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+        }
+
+        .card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 16px;
+            color: var(--text);
+        }
+
+        .card p {
+            color: var(--text-muted);
+            line-height: 1.7;
+            font-size: 1.05rem;
+        }
+
+        .card ul {
+            list-style: none;
+            margin-top: 16px;
+        }
+
+        .card ul li {
+            color: var(--text-muted);
+            padding: 8px 0;
+            padding-left: 24px;
+            position: relative;
+            font-size: 0.95rem;
+        }
+
+        .card ul li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        /* Feature Cards for Modules */
+        .module-card {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+
+        .module-card .card-icon {
+            background: linear-gradient(135deg, var(--success), #059669);
+        }
+
+        .module-card:nth-child(2) .card-icon {
+            background: linear-gradient(135deg, var(--warning), #d97706);
+        }
+
+        .module-card:nth-child(3) .card-icon {
+            background: linear-gradient(135deg, var(--accent), #0891b2);
+        }
+
+        /* Steps */
+        .steps-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 1000px;
+            margin-top: 50px;
+            position: relative;
+        }
+
+        .steps-container::before {
+            content: '';
+            position: absolute;
+            top: 40px;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            z-index: 0;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 1;
+            flex: 1;
+            text-align: center;
+        }
+
+        .step-number {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .step:hover .step-number {
+            transform: scale(1.1);
+        }
+
+        .step h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .step p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            max-width: 200px;
+        }
+
+        /* Comparison Table */
+        .comparison-table {
+            width: 100%;
+            max-width: 900px;
+            margin-top: 40px;
+        }
+
+        .comparison-row {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .comparison-header {
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 15px;
+        }
+
+        .comparison-item {
+            background: var(--glass);
+            padding: 18px 15px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .comparison-item.highlight {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
+            border-color: var(--primary);
+            transform: scale(1.05);
+            font-weight: 600;
+        }
+
+        .check { color: var(--success); font-size: 1.3rem; }
+        .cross { color: #ef4444; font-size: 1.3rem; }
+        .partial { color: var(--warning); font-size: 1.3rem; }
+
+        /* Pricing Cards */
+        .pricing-container {
+            display: flex;
+            gap: 40px;
+            margin-top: 40px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .pricing-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            width: 320px;
+            text-align: center;
+            transition: all 0.4s ease;
+            position: relative;
+        }
+
+        .pricing-card.featured {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
+            border-color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        .pricing-card.featured::after {
+            content: 'TOP';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 6px 20px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .pricing-card.featured:hover {
+            transform: scale(1.05) translateY(-10px);
+        }
+
+        .price {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin: 20px 0;
+            background: linear-gradient(135deg, var(--text), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .price-features {
+            list-style: none;
+            text-align: left;
+            margin: 30px 0;
+        }
+
+        .price-features li {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .price-features li::before {
+            content: '✓';
+            color: var(--success);
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        /* Status Indicators */
+        .status-container {
+            display: flex;
+            gap: 50px;
+            margin-top: 50px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            text-align: center;
+            padding: 30px;
+        }
+
+        .status-circle {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            position: relative;
+            margin: 0 auto 20px;
+        }
+
+        .status-circle.ready {
+            background: linear-gradient(135deg, var(--success), #059669);
+            box-shadow: 0 0 50px rgba(16, 185, 129, 0.4);
+        }
+
+        .status-circle.progress {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            box-shadow: 0 0 50px rgba(99, 102, 241, 0.4);
+            animation: pulse 2s infinite;
+        }
+
+        .status-circle.planning {
+            background: linear-gradient(135deg, var(--warning), #d97706);
+            box-shadow: 0 0 50px rgba(245, 158, 11, 0.4);
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 50px rgba(99, 102, 241, 0.4); }
+            50% { box-shadow: 0 0 70px rgba(99, 102, 241, 0.6); }
+        }
+
+        /* Vision Section */
+        .vision-text {
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
+            text-align: center;
+            max-width: 900px;
+            line-height: 1.8;
+            font-weight: 300;
+            color: var(--text-muted);
+        }
+
+        .vision-text span {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .vision-text .highlight {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+
+        /* Final Slide */
+        .final-content {
+            text-align: center;
+        }
+
+        .presenter-name {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 30px 0 10px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .presenter-role {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .presenter-location {
+            font-size: 1rem;
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        /* Navigation */
+        .nav-controls {
+            bottom: 0px;
+            right: 20px;
+            left: auto;
+            transform: none;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 1000;
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(20px);
+            padding: 8px 18px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+        }
+
+        .nav-btn:hover {
+            background: var(--glass);
+            transform: scale(1.1);
+        }
+
+        .slide-counter {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.6);
+            font-weight: 500;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            transition: width 0.3s ease;
+            z-index: 1001;
+        }
+
+        /* Keyboard hint */
+        .keyboard-hint {
+            position: fixed;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            opacity: 0.6;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .key {
+            background: var(--glass);
+            padding: 5px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            font-family: monospace;
+            font-size: 0.8rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            margin-top: 50px;
+            max-width: 900px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 30px;
+            background: var(--glass);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-number {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        /* Problem Cards Special */
+        .problem-card .card-icon {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .slide {
+                padding: 30px 20px;
+            }
+
+            .cards-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .steps-container {
+                flex-direction: column;
+                gap: 30px;
+            }
+
+            .steps-container::before {
+                display: none;
+            }
+
+            .pricing-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .comparison-row {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .status-container {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: fadeInUp 0.6s ease forwards;
+            opacity: 0;
+        }
+
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+        .delay-5 { animation-delay: 0.5s; }
+
+        /* Logo styling */
+        .logo {
+            font-size: 1rem;
+            color: var(--accent);
+            margin-bottom: 20px;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        /* Platform overview */
+        .platform-overview {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+
+        .platform-item {
+            background: var(--glass);
+            padding: 30px 40px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            min-width: 200px;
+        }
+
+        .platform-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .platform-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .platform-desc {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <div class="bg-glow glow-1"></div>
+    <div class="bg-glow glow-2"></div>
+    <div class="progress-bar" id="progressBar"></div>
+
+    <div class="presentation">
+        <!-- Slide 1: Cover -->
+        <div class="slide active" id="slide1">
+            <div style="text-align: center;">
+                <div class="logo">Startup Pitch Deck 2026</div>
+                <h1>PATHEDU</h1>
+                <div class="subtitle">Talabalarni xalqaro ta'limga tayyorlash platformasi</div>
+                <div class="tagline">Barcha kerakli resurslar — bitta platformada</div>
+                <div style="margin-top: 60px; padding-top: 30px; border-top: 1px solid rgba(255,255,255,0.1);">
+                    <div style="font-size: 1.3rem; font-weight: 600; margin-bottom: 8px;">Abbos Xolboyev</div>
+                    <div style="color: var(--text-muted);">Asoschi va Team Leader — O'zbekiston</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 2: Problem -->
+        <div class="slide" id="slide2">
+            <h2>Muammo</h2>
+            <div class="subtitle">Talabalar duch keladigan asosiy qiyinchiliklar</div>
+            <div class="cards-container">
+                <div class="card problem-card animate-in delay-1">
+                    <div class="card-icon">📚</div>
+                    <h3>Tayyorgarlik resurslari sochilib ketgan</h3>
+                    <p>IELTS, SAT va boshqa imtihonlar uchun materiallar turli saytlarda, tizimli yo'q. Talabalar nima qilishni bilmay adashadi.</p>
+                </div>
+                <div class="card problem-card animate-in delay-2">
+                    <div class="card-icon">🌍</div>
+                    <h3>Grant ma'lumotlari tarqoq</h3>
+                    <p>Grantlar haqida ma'lumot Telegram kanallarda, saytlarda sochilgan. Deadline'lar o'tib ketadi, imkoniyatlar boy beriladi.</p>
+                </div>
+                <div class="card problem-card animate-in delay-3">
+                    <div class="card-icon">💸</div>
+                    <h3>Konsalting xizmatlari qimmat</h3>
+                    <p>Professional yordam 1500-4000$ turadi. Ko'plab iqtidorli talabalar bunga qodir emas va orzularidan voz kechishadi.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: Solution -->
+        <div class="slide" id="slide3">
+            <h2>Yechim</h2>
+            <div class="subtitle">PathEDU — bitta platformada hammasi</div>
+            <div class="platform-overview">
+                <div class="platform-item animate-in delay-1">
+                    <div class="platform-icon">📖</div>
+                    <div class="platform-name">Free Learning Hub</div>
+                    <div class="platform-desc">Bepul o'quv materiallari</div>
+                </div>
+                <div class="platform-item animate-in delay-2">
+                    <div class="platform-icon">🎯</div>
+                    <div class="platform-name">Scholarship Navigator</div>
+                    <div class="platform-desc">Grantlar va kuzatuv</div>
+                </div>
+                <div class="platform-item animate-in delay-3">
+                    <div class="platform-icon">🤖</div>
+                    <div class="platform-name">AI Assistant</div>
+                    <div class="platform-desc">Yordamchi sun'iy intellekt</div>
+                </div>
+            </div>
+            <div style="margin-top: 50px; text-align: center; max-width: 700px; color: var(--text-muted); font-size: 1.2rem;" class="animate-in delay-4">
+                Biz talabalarga <span style="color: var(--text); font-weight: 600;">bepul</span> va <span style="color: var(--text); font-weight: 600;">tizimli</span> yondashuv orqali xalqaro ta'limga yetaklaymiz.
+            </div>
+        </div>
+
+        <!-- Slide 4: Platform Modules -->
+        <div class="slide" id="slide4">
+            <h2>Platforma modullari</h2>
+            <div class="subtitle">Uchta asosiy komponent</div>
+            <div class="cards-container">
+                <div class="card module-card animate-in delay-1">
+                    <div class="card-icon">📚</div>
+                    <h3>1. Free Learning Hub</h3>
+                    <p>Tayyorgarlik uchun barcha resurslar bir joyda:</p>
+                    <ul>
+                        <li>IELTS bepul materiallar</li>
+                        <li>SAT o'quv qo'llanmalari</li>
+                        <li>Yo'nalish bo'yicha roadmap'lar</li>
+                        <li>Khan Academy, Coursera integratsiyasi</li>
+                        <li>Video darsliklar va testlar</li>
+                    </ul>
+                </div>
+                <div class="card module-card animate-in delay-2">
+                    <div class="card-icon">🎯</div>
+                    <h3>2. Scholarship Navigator</h3>
+                    <p>Grantlar bilan ishlashning oson usuli:</p>
+                    <ul>
+                        <li>Muntazam yangilanadigan grantlar bazasi</li>
+                        <li>Deadline tracking va eslatmalar</li>
+                        <li>Application guide (qo'llanmalar)</li>
+                        <li>Hujjatlar checklist'i</li>
+                        <li>Muvaffaqiyatli arizalar namunalari</li>
+                    </ul>
+                </div>
+                <div class="card module-card animate-in delay-3">
+                    <div class="card-icon">🤖</div>
+                    <h3>3. AI Assistant</h3>
+                    <p>Sun'iy intellekt yordamida:</p>
+                    <ul>
+                        <li>Shaxsiy grant matching</li>
+                        <li>Essay yozishda yo'naltirish</li>
+                        <li>Shaxsiy roadmap yaratish</li>
+                        <li>Savollarga javob (24/7)</li>
+                        <li>Hujjatlarni tahlil qilish</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: How it Works -->
+        <div class="slide" id="slide5">
+            <h2>Qanday ishlaydi</h2>
+            <div class="subtitle">4 oddiy qadam</div>
+            <div class="steps-container">
+                <div class="step animate-in delay-1">
+                    <div class="step-number">1</div>
+                    <h4>Ro'yxatdan o'tish</h4>
+                    <p>Platformaga kirish va profil yaratish</p>
+                </div>
+                <div class="step animate-in delay-2">
+                    <div class="step-number">2</div>
+                    <h4>Maqsadni tanlash</h4>
+                    <p>Davlat, yo'nalish va imtihonlarni belgilash</p>
+                </div>
+                <div class="step animate-in delay-3">
+                    <div class="step-number">3</div>
+                    <h4>Tayyorgarlik</h4>
+                    <p>Learning Hub'dan foydalanib o'qish</p>
+                </div>
+                <div class="step animate-in delay-4">
+                    <div class="step-number">4</div>
+                    <h4>Grant topish</h4>
+                    <p>Navigator va AI yordamida ariza topshirish</p>
+                </div>
+            </div>
+            <div style="margin-top: 60px; padding: 25px 40px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(6, 182, 212, 0.2)); border-radius: 16px; border: 1px solid rgba(99, 102, 241, 0.3);" class="animate-in delay-5">
+                <div style="font-weight: 600; color: var(--accent);">Natija:</div>
+                <div style="margin-top: 8px;">Tizimli tayyorgarlik + to'g'ri grant = Xalqaro ta'lim</div>
+            </div>
+        </div>
+
+        <!-- Slide 6: Competitive Advantage -->
+        <div class="slide" id="slide6">
+            <h2>Raqobat ustunligi</h2>
+            <div class="subtitle">Nima uchun aynan PathEDU?</div>
+            <div class="comparison-table">
+                <div class="comparison-row" style="margin-bottom: 20px;">
+                    <div class="comparison-header" style="text-align: left;">Xususiyat</div>
+                    <div class="comparison-header">Kurslar</div>
+                    <div class="comparison-header">Telegram</div>
+                    <div class="comparison-header" style="color: var(--primary);">PathEDU</div>
+                </div>
+                <div class="comparison-row">
+                    <div style="font-weight: 600; text-align: left; padding-left: 15px;">Bepul resurslar</div>
+                    <div class="comparison-item"><span class="cross">✗</span> Cheklangan</div>
+                    <div class="comparison-item"><span class="partial">~</span> Tartibsiz</div>
+                    <div class="comparison-item highlight"><span class="check">✓</span> Tizimli</div>
+                </div>
+                <div class="comparison-row">
+                    <div style="font-weight: 600; text-align: left; padding-left: 15px;">Grantlar bazasi</div>
+                    <div class="comparison-item"><span class="cross">✗</span> Yo'q</div>
+                    <div class="comparison-item"><span class="partial">~</span> Tarqoq</div>
+                    <div class="comparison-item highlight"><span class="check">✓</span> To'liq</div>
+                </div>
+                <div class="comparison-row">
+                    <div style="font-weight: 600; text-align: left; padding-left: 15px;">Deadline tracking</div>
+                    <div class="comparison-item"><span class="cross">✗</span> Yo'q</div>
+                    <div class="comparison-item"><span class="cross">✗</span> Yo'q</div>
+                    <div class="comparison-item highlight"><span class="check">✓</span> Avtomatik</div>
+                </div>
+                <div class="comparison-row">
+                    <div style="font-weight: 600; text-align: left; padding-left: 15px;">AI yordam</div>
+                    <div class="comparison-item"><span class="cross">✗</span> Yo'q</div>
+                    <div class="comparison-item"><span class="cross">✗</span> Yo'q</div>
+                    <div class="comparison-item highlight"><span class="check">✓</span> Shaxsiy</div>
+                </div>
+                <div class="comparison-row">
+                    <div style="font-weight: 600; text-align: left; padding-left: 15px;">Hammasi bir joyda</div>
+                    <div class="comparison-item"><span class="cross">✗</span> Yo'q</div>
+                    <div class="comparison-item"><span class="cross">✗</span> Yo'q</div>
+                    <div class="comparison-item highlight"><span class="check">✓</span> Ha</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: Market Opportunity -->
+        <div class="slide" id="slide7">
+            <h2>Bozor imkoniyati</h2>
+            <div class="subtitle">Markaziy Osiyo: o'sish bozori</div>
+            <div class="stats-grid">
+                <div class="stat-item animate-in delay-1">
+                    <div class="stat-number">35M+</div>
+                    <div class="stat-label">Markaziy Osiyo aholisi</div>
+                </div>
+                <div class="stat-item animate-in delay-2">
+                    <div class="stat-number">60%</div>
+                    <div class="stat-label">25 yoshgacha aholi</div>
+                </div>
+                <div class="stat-item animate-in delay-3">
+                    <div class="stat-number">40%</div>
+                    <div class="stat-label">Xorijga o'qish istagi</div>
+                </div>
+            </div>
+            <div style="margin-top: 50px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px; max-width: 800px;">
+                <div style="background: var(--glass); padding: 30px; border-radius: 16px; border-left: 4px solid var(--success);" class="animate-in delay-4">
+                    <div style="font-size: 2rem; font-weight: 700; color: var(--success); margin-bottom: 10px;">$500M</div>
+                    <div style="color: var(--text-muted);">Yillik konsalting bozori</div>
+                </div>
+                <div style="background: var(--glass); padding: 30px; border-radius: 16px; border-left: 4px solid var(--primary);" class="animate-in delay-5">
+                    <div style="font-size: 2rem; font-weight: 700; color: var(--primary); margin-bottom: 10px;">25%</div>
+                    <div style="color: var(--text-muted);">Yillik o'sish sur'ati</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: Business Model -->
+        <div class="slide" id="slide8">
+            <h2>Biznes model</h2>
+            <div class="subtitle">Freemium strategiya</div>
+            <div class="pricing-container">
+                <div class="pricing-card animate-in delay-1">
+                    <h3>Free</h3>
+                    <div class="price">$0</div>
+                    <div style="color: var(--text-muted); font-size: 0.9rem;">Boshlang'ich foydalanuvchilar uchun</div>
+                    <ul class="price-features">
+                        <li>Learning Hub'ga to'liq kirish</li>
+                        <li>10 ta grant tavsiyasi</li>
+                        <li>Asosiy deadline eslatmalari</li>
+                        <li>Checklist'lar</li>
+                        <li>Forum'da ishtirok</li>
+                    </ul>
+                </div>
+                <div class="pricing-card featured animate-in delay-2">
+                    <h3>Premium</h3>
+                    <div class="price">$15</div>
+                    <div style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 10px;">/oy</div>
+                    <ul class="price-features">
+                        <li>Hammasi Free'dan</li>
+                        <li>Cheksiz grant tavsiyasi</li>
+                        <li>AI Assistant to'liq foydalanish</li>
+                        <li>Shaxsiy mentor bilan aloqa</li>
+                        <li>Essay tekshiruvi</li>
+                        <li>Viza yordami</li>
+                    </ul>
+                    <div style="color: var(--accent); font-size: 0.9rem; font-weight: 600; margin-top: 15px;">Jiddiy talabalar uchun</div>
+                </div>
+            </div>
+            <div style="margin-top: 40px; text-align: center; color: var(--text-muted);" class="animate-in delay-3">
+                Qo'shimcha daromad: Hamkorlik (universitetlar, test markazlari), Reklama, B2B (maktablar uchun litsenziya)
+            </div>
+        </div>
+
+        <!-- Slide 9: Current Status -->
+        <div class="slide" id="slide9">
+            <h2>Hozirgi holat</h2>
+            <div class="subtitle">Loyiha rivojlanish bosqichlari</div>
+            <div class="status-container">
+                <div class="status-item animate-in delay-1">
+                    <div class="status-circle ready">✓</div>
+                    <h3 style="margin-bottom: 10px;">Market research</h3>
+                    <p style="color: var(--text-muted);">Tayyor</p>
+                </div>
+                <div class="status-item animate-in delay-2">
+                    <div class="status-circle ready">✓</div>
+                    <h3 style="margin-bottom: 10px;">UI/UX Dizayn</h3>
+                    <p style="color: var(--text-muted);">Tayyor</p>
+                </div>
+                <div class="status-item animate-in delay-3">
+                    <div class="status-circle progress">⟳</div>
+                    <h3 style="margin-bottom: 10px;">Frontend</h3>
+                    <p style="color: var(--text-muted);">Ishlanmoqda (70%)</p>
+                </div>
+                <div class="status-item animate-in delay-4">
+                    <div class="status-circle planning">○</div>
+                    <h3 style="margin-bottom: 10px;">Backend & AI</h3>
+                    <p style="color: var(--text-muted);">Rejalashtirilgan</p>
+                </div>
+            </div>
+            <div style="margin-top: 50px; padding: 30px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(6, 182, 212, 0.2)); border-radius: 20px; max-width: 600px; text-align: center; border: 1px solid rgba(99, 102, 241, 0.3);" class="animate-in delay-5">
+                <div style="color: var(--accent); font-weight: 600; margin-bottom: 15px; font-size: 1.1rem;">Keyingi qadam</div>
+                <div style="font-size: 1.2rem; margin-bottom: 10px;">Beta test uchun $50,000 investitsiya</div>
+                <div style="color: var(--text-muted);">MVP ishga tushirish va birinchi 1000 foydalanuvchi</div>
+            </div>
+        </div>
+
+        <!-- Slide 10: Vision -->
+        <div class="slide" id="slide10">
+            <h2>Vizyon</h2>
+            <div class="vision-text animate-in delay-1">
+                <span class="highlight">2028 yilga qadar</span> <span>1 million</span> nafar talabaga xalqaro ta'lim olishiga yordam berish va <span>Markaziy Osiyoning eng katta</span> ta'lim platformasiga aylanish.
+            </div>
+            <div style="margin-top: 60px; display: flex; gap: 50px; justify-content: center; flex-wrap: wrap;" class="animate-in delay-2">
+                <div style="text-align: center; padding: 30px;">
+                    <div style="font-size: 3.5rem; margin-bottom: 15px;">🌍</div>
+                    <div style="font-weight: 600; margin-bottom: 5px;">Global imkoniyatlar</div>
+                    <div style="color: var(--text-muted); font-size: 0.9rem;">Dunyo universitetlari ochiq</div>
+                </div>
+                <div style="text-align: center; padding: 30px;">
+                    <div style="font-size: 3.5rem; margin-bottom: 15px;">⚡</div>
+                    <div style="font-weight: 600; margin-bottom: 5px;">Tez rivojlanish</div>
+                    <div style="color: var(--text-muted); font-size: 0.9rem;">Texnologiya orqali tezlik</div>
+                </div>
+                <div style="text-align: center; padding: 30px;">
+                    <div style="font-size: 3.5rem; margin-bottom: 15px;">🤝</div>
+                    <div style="font-weight: 600; margin-bottom: 5px;">Hamkorlik</div>
+                    <div style="color: var(--text-muted); font-size: 0.9rem;">Universitetlar bilan aloqalar</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 11: Thank You -->
+        <div class="slide" id="slide11">
+            <div class="final-content">
+                <h1 style="font-size: 4rem; margin-bottom: 30px;">Rahmat!</h1>
+                <div style="font-size: 1.3rem; color: var(--text-muted); margin-bottom: 40px;">Savollar uchun tayyormiz</div>
+                <div class="presenter-name">Abbos Xolboyev</div>
+                <div class="presenter-role">Asoschi va Team Leader</div>
+                <div class="presenter-location">📍 O'zbekiston</div>
+                <div style="margin-top: 50px; padding-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); max-width: 400px; margin-left: auto; margin-right: auto;">
+                    <div style="color: var(--accent); font-size: 1.3rem; font-weight: 700; margin-bottom: 10px;">PATHEDU</div>
+                    <div style="color: var(--text-muted);">abbosxolboyev15@gmail.com</div>
+                    <div style="color: var(--text-muted); margin-top: 5px;">+998 99 933 25 35</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="keyboard-hint">
+        <span><span class="key">←</span> Oldingi</span>
+        <span><span class="key">→</span> Keyingi</span>
+        <span><span class="key">Space</span> O'tish</span>
+    </div>
+
+    <div class="nav-controls">
+        <button class="nav-btn" onclick="prevSlide()">←</button>
+        <div class="slide-counter"><span id="currentSlide">1</span> / 11</div>
+        <button class="nav-btn" onclick="nextSlide()">→</button>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 11;
+
+        function updateSlide() {
+            // Hide all slides
+            document.querySelectorAll('.slide').forEach((slide, index) => {
+                slide.classList.remove('active', 'prev');
+                if (index + 1 === currentSlide) {
+                    slide.classList.add('active');
+                } else if (index + 1 < currentSlide) {
+                    slide.classList.add('prev');
+                }
+            });
+
+            // Update counter
+            document.getElementById('currentSlide').textContent = currentSlide;
+
+            // Update progress bar
+            const progress = (currentSlide / totalSlides) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+
+            // Reset animations for new slide
+            const activeSlide = document.querySelector('.slide.active');
+            if (activeSlide) {
+                const animatedElements = activeSlide.querySelectorAll('.animate-in');
+                animatedElements.forEach(el => {
+                    el.style.animation = 'none';
+                    el.offsetHeight; // Trigger reflow
+                    el.style.animation = null;
+                });
+            }
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides) {
+                currentSlide++;
+                updateSlide();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 1) {
+                currentSlide--;
+                updateSlide();
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                nextSlide();
+            } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                prevSlide();
+            }
+        });
+
+        // Touch support for mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            if (touchEndX < touchStartX - 50) nextSlide();
+            if (touchEndX > touchStartX + 50) prevSlide();
+        }
+
+        // Initialize
+        updateSlide();
+    </script>
+</body>
+</html>
